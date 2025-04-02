@@ -18,5 +18,7 @@ jobs:
         username: ourdoumaroaune
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ourdoumaroaune/ilhan-project:latest
+    - name: Build & Push the Docker image
+      run: |
+        docker build . --file Dockerfile --tag ourdoumaroaune/ilhan-project:latest
+        docker push ourdoumaroaune/ilhan-project:latest
