@@ -1,6 +1,6 @@
 # ilhan-project
 
-dotnet app pipeline
+dotnet app pipeline test
 
 ## ASP.NET MVC Docker + CI/CD Tasks
 
