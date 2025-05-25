@@ -53,8 +53,8 @@ pipeline:
                       echo "listing the dir:"
                       ls
 
-                      docker build -t myapp-gcp -f Dockerfile.gcp
-                      docker build -t myapp-aws -f Dockerfile.aws
+                      docker build -t myapp-gcp -f Dockerfile.gcp .
+                      docker build -t myapp-aws -f Dockerfile.aws .
 
                       docker image ls
               - parallel:
