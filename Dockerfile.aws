@@ -1,7 +1,5 @@
-FROM bref/php-81
+FROM --platform=linux/amd64 public.ecr.aws/lambda/nodejs:22
 
-# Copy the source code to Lambda's working directory
-COPY src/ /var/task/
+COPY ./nodeapp/app.js ${LAMBDA_TASK_ROOT}
 
-# Set the handler file location
-CMD ["index.php"]
+CMD [ "app.handler" ]
