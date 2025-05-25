@@ -1,49 +1,26 @@
-# ilhan-project
+# How it Works
 
-dotnet app pipeline test
+Docker builds an image containing the application in src/ and all of its dependencies by using the Dockerfile contained in this repository.
 
-## ASP.NET MVC Docker + CI/CD Tasks
+The Dockerfile tells docker to use the [official PHP Docker image](https://hub.docker.com/_/php/) as the parent image.
 
-### Tasks (in order)
+The PHP image then uses the [official Debian Jessie Docker image](https://hub.docker.com/_/debian/) as its parent image.
 
-1. Configure Remote SSH
+Debian then uses the [scratch image](https://hub.docker.com/_/scratch/) as its base image.
 
-2. Create a new repository and clone it
+At this point, an image has been built which contains Apache, PHP and all of the OS dependencies and libraries required to serve a webpage written in PHP.
 
-3. Create an ASP.NET MVC Web App
+Finally, docker copies everything in src/ inside this repository to the /var/www/html folder inside the image. This is the Apache web root directory.
 
-    ```bash
-    dotnet new mvc -au None
-    ```
+# Setup
 
-4. Build and run it locally
+ - Ensure you have Docker installed
+ - `git clone https://github.com/marOne-mrri/docker-php-helloworld.git`
+ - `docker build -t docker-php-helloworld .` 
+ - `docker run -p 80:80 docker-php-helloworld`
 
-    ```bash
-    dotnet build
-    dotnet myapp.dll
-    ```
+# What You Should See
 
-5. Dockerize the app
-    create dockerfile and build the image.
+![Docker PHP App](https://image.ibb.co/cTxSf7/whale.png "Hello World")
 
-    ```bash
-    docker build -t myapp .
-    ```
-
-6. Run it as a container
-
-    ```bash
-    docker run -d -p 8080:8080 --name app myapp:latest
-    ```
-
-7. Create the CI pipeline to build and push the Docker image
-
-    ```bash
-    docker push myapp:latest
-    ```
-
-8. Create the CD pipeline to run the container
-
-    ```bash
-    docker run myapp:latest
-    ```
+This was originally created to test my project: [test-env-loadbalancing](https://github.com/marOne-mrri/test-env-loadbalancing) which solves the problem of the traffic jam that might happen when deploying to test envs.
