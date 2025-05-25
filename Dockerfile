@@ -1,7 +1,7 @@
-FROM bref/php-81-fpm
+FROM bref/php-81
 
-# Copy your PHP application
-COPY . /var/task
+# Copy the source code to Lambda's working directory
+COPY src/ /var/task/
 
-# Define the Lambda handler
-CMD ["public/index.php"]
+# Set the handler file location
+CMD ["index.php"]
