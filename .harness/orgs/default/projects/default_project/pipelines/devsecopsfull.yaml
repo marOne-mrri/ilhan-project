@@ -1,0 +1,139 @@
+pipeline:
+  name: devsecops-full
+  identifier: devsecopsfull
+  projectIdentifier: default_project
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: build-scan-push
+        identifier: buildscanpush
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: false
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Docker
+            spec: {}
+          sharedPaths:
+            - /var/run
+          buildIntelligence:
+            enabled: false
+          execution:
+            steps:
+              - step:
+                  type: Background
+                  name: dind
+                  identifier: dind
+                  spec:
+                    connectorRef: account.harnessImage
+                    image: docker:dind
+                    shell: Sh
+              - step:
+                  type: Run
+                  name: build
+                  identifier: run_build
+                  spec:
+                    shell: Sh
+                    command: |-
+                      while ! docker ps ;do 
+                      echo "Docker not available yet"
+                      done
+
+                      echo "Docker service is ready" 
+                      docker ps
+
+                      echo "listing the dir:"
+                      ls
+
+                      docker build -t myapp-gcp -f Dockerfile.gcp
+                      docker build -t myapp-aws -f Dockerfile.aws
+
+                      docker image ls
+              - parallel:
+                  - step:
+                      type: Grype
+                      name: scan gcp
+                      identifier: grype_scan
+                      spec:
+                        mode: orchestration
+                        config: default
+                        target:
+                          type: container
+                          detection: auto
+                        advanced:
+                          log:
+                            level: info
+                        privileged: true
+                        image:
+                          type: local_image
+                          tag: latest
+                          name: myapp-gcp
+                  - step:
+                      type: Grype
+                      name: scan aws
+                      identifier: scan_aws
+                      spec:
+                        mode: orchestration
+                        config: default
+                        target:
+                          type: container
+                          detection: auto
+                        advanced:
+                          log:
+                            level: info
+                        privileged: true
+                        image:
+                          type: local_image
+                          tag: latest
+                          name: myapp-aws
+              - step:
+                  type: Run
+                  name: tag-image
+                  identifier: tagimage
+                  spec:
+                    shell: Bash
+                    command: |-
+                      docker tag myapp-aws:latest test-repo:lts
+                      docker tag myapp-gcp:latest test-repo/myapp:lts
+              - parallel:
+                  - step:
+                      type: BuildAndPushECR
+                      name: push-ecr
+                      identifier: push_ecr
+                      spec:
+                        connectorRef: awsecr
+                        region: us-east-1
+                        account: "767828750844"
+                        imageName: test-repo
+                        tags:
+                          - lts
+                        envVariables:
+                          PLUGIN_PUSH_ONLY: "true"
+                  - step:
+                      type: BuildAndPushGAR
+                      name: push-gar
+                      identifier: push_gar
+                      spec:
+                        connectorRef: garconnector
+                        host: us-east1-docker.pkg.dev
+                        projectID: lively-transit-459722-s3
+                        imageName: test-repo/myapp
+                        tags:
+                          - lts
+                        envVariables:
+                          PLUGIN_PUSH_ONLY: "true"
+        delegateSelectors:
+          - docker-delegate
+  properties:
+    ci:
+      codebase:
+        connectorRef: githubconnector
+        build: <+input>
