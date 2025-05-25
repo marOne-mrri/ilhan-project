@@ -115,6 +115,7 @@ pipeline:
                         imageName: test-repo
                         tags:
                           - lts
+                        dockerfile: Dockerfile.aws
                         envVariables:
                           PLUGIN_PUSH_ONLY: "true"
                   - step:
@@ -128,6 +129,7 @@ pipeline:
                         imageName: test-repo/myapp
                         tags:
                           - lts
+                        dockerfile: Dockerfile.gcp
                         envVariables:
                           PLUGIN_PUSH_ONLY: "true"
         delegateSelectors:
